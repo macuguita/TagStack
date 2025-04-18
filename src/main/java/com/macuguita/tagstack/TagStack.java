@@ -57,7 +57,6 @@ public class TagStack implements ModInitializer {
 			TagStackTags.STACKABLE_TO_64, 64
 	);
 
-	//TODO: idk if it might be posible but, when server reloads tags, it sends a packet telling the client to update the stack size of the items, might have to rescue the custom item list payload in previous commits...
 	@Override
 	public void onInitialize() {
 		DefaultItemComponentEvents.MODIFY.register(context -> {
