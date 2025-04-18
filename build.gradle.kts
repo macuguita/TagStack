@@ -25,7 +25,7 @@ loom {
 	}
 }
 
-version = BuildConfig.modVersion
+version = BuildConfig.modVersion + "+" + BuildConfig.minecraftVersion
 group = BuildConfig.mavenGroup
 
 base {
@@ -59,8 +59,6 @@ dependencies {
 }
 
 tasks.processResources {
-	inputs.property("version", version)
-
 	filesMatching("fabric.mod.json") {
 		expand(
 			"version" to BuildConfig.modVersion,
