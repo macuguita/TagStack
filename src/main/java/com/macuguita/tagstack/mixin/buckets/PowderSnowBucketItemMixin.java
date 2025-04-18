@@ -44,7 +44,7 @@ public class PowderSnowBucketItemMixin extends BlockItem {
             at = @At("HEAD"),
             cancellable = true
     )
-    private void daisy$pwderSnowLikeWorksWithBigStackSize(ItemUsageContext context, CallbackInfoReturnable<ActionResult> ci) {
+    private void tagStack$pwderSnowLikeWorksWithBigStackSize(ItemUsageContext context, CallbackInfoReturnable<ActionResult> ci) {
         PlayerEntity player = context.getPlayer();
         if (player == null) return;
 

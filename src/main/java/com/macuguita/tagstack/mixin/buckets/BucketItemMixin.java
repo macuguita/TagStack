@@ -42,7 +42,7 @@ public abstract class BucketItemMixin {
                     target = "Lnet/minecraft/item/BucketItem;getEmptiedStack(Lnet/minecraft/item/ItemStack;Lnet/minecraft/entity/player/PlayerEntity;)Lnet/minecraft/item/ItemStack;"
             )
     )
-    private ItemStack daisy$bucketsWorkWithBigStackSize(ItemStack stack, PlayerEntity player, Operation<ItemStack> original) {
+    private ItemStack tagStack$bucketsWorkWithBigStackSize(ItemStack stack, PlayerEntity player, Operation<ItemStack> original) {
         return TagStack.handleStackableBucket(stack, player, new ItemStack(Items.BUCKET));
     }
 }

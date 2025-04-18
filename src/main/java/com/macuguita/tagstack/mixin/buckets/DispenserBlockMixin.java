@@ -38,7 +38,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class DispenserBlockMixin {
 
     @Inject(method = "registerBehavior", at = @At("HEAD"), cancellable = true)
-    private static void daisy$dispensersWorksWithBigBucketStackSize(ItemConvertible provider, DispenserBehavior behavior, CallbackInfo ci) {
+    private static void tagStack$dispensersWorksWithBigBucketStackSize(ItemConvertible provider, DispenserBehavior behavior, CallbackInfo ci) {
         Item item = provider.asItem();
 
         if (!(behavior instanceof FilledBucketDispenserBehavior) && !(behavior instanceof EmptyBucketDispenserBehavior)) {

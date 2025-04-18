@@ -45,7 +45,7 @@ public class WoodenMilkBucketMixin {
                     target = "Lnet/minecraft/item/ItemStack;isEmpty()Z"
             )
     )
-    private boolean daisy$woodenBucketsWorksWithBigStackSize(ItemStack instance, Operation<Boolean> original, ItemStack stack, World world, LivingEntity user) {
+    private boolean tagStack$woodenBucketsWorksWithBigStackSize(ItemStack instance, Operation<Boolean> original, ItemStack stack, World world, LivingEntity user) {
         boolean isEmpty = original.call(instance);
 
         if (user instanceof PlayerEntity player && !player.getAbilities().creativeMode) {

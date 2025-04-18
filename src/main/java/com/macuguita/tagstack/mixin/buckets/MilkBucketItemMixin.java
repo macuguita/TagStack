@@ -43,7 +43,7 @@ public class MilkBucketItemMixin {
                     target = "Lnet/minecraft/item/ItemStack;isEmpty()Z"
             )
     )
-    private boolean daisy$milkWorksWithBigStackSize(ItemStack instance, Operation<Boolean> original, ItemStack stack, World world, LivingEntity user) {
+    private boolean tagStack$milkWorksWithBigStackSize(ItemStack instance, Operation<Boolean> original, ItemStack stack, World world, LivingEntity user) {
         boolean isEmpty = original.call(instance);
 
         if (user instanceof PlayerEntity player && !player.getAbilities().creativeMode) {
