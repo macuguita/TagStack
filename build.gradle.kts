@@ -33,7 +33,10 @@ base {
 }
 
 repositories {
-	maven { url = uri("https://api.modrinth.com/maven") }
+	maven {
+		name = "Modrinth"
+		url = uri("https://api.modrinth.com/maven")
+	}
 }
 
 dependencies {
@@ -44,11 +47,15 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation("net.fabricmc.fabric-api:fabric-api:${BuildConfig.fabricVersion}")
 
-	modImplementation("maven.modrinth:moonlight:${BuildConfig.moonlightVersion}")
-	modImplementation("maven.modrinth:supplementaries:${BuildConfig.supplementariesVersion}")
-	modImplementation("maven.modrinth:architectury-api:${BuildConfig.architecturyVersion}")
-	modImplementation("maven.modrinth:cloth-config:${BuildConfig.clothConfigVersion}")
-	modImplementation("maven.modrinth:lets-do-meadow:${BuildConfig.meadowVersion}")
+	if (BuildConfig.supplementariesVersion != "no") {
+		modImplementation("maven.modrinth:moonlight:${BuildConfig.moonlightVersion}")
+		modImplementation("maven.modrinth:supplementaries:${BuildConfig.supplementariesVersion}")
+	}
+	if (BuildConfig.meadowVersion != "no") {
+		modImplementation("maven.modrinth:architectury-api:${BuildConfig.architecturyVersion}")
+		modImplementation("maven.modrinth:cloth-config:${BuildConfig.clothConfigVersion}")
+		modImplementation("maven.modrinth:lets-do-meadow:${BuildConfig.meadowVersion}")
+	}
 }
 
 tasks.processResources {
@@ -60,7 +67,9 @@ tasks.processResources {
 			"modId" to BuildConfig.modId,
 			"modName" to BuildConfig.modName,
 			"description" to BuildConfig.description,
-			"license" to BuildConfig.license
+			"license" to BuildConfig.license,
+			"loaderVersion" to BuildConfig.loaderVersion,
+			"minecraftVersion" to BuildConfig.minecraftVersion
 		)
 	}
 }
