@@ -34,10 +34,6 @@ base {
 
 repositories {
 	maven {
-		name = "Fabric"
-		url = uri("https://maven.fabricmc.net/")
-	}
-	maven {
 		name = "Modrinth"
 		url = uri("https://api.modrinth.com/maven")
 	}
