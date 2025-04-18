@@ -23,21 +23,27 @@
 package com.macuguita.tagstack.client;
 
 import com.macuguita.tagstack.TagStack;
-import com.macuguita.tagstack.mixin.accessor.ItemAccessor;
+import com.macuguita.tagstack.client.payloads.ItemListPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class TagStackClient implements ClientModInitializer {
 
     private static final Map<Item, Integer> VANILLA_STACK_SIZES = new HashMap<>();
+    private static final List<Item> ITEM_LIST = new ArrayList<>();
 
     @Override
     public void onInitializeClient() {
@@ -45,34 +51,31 @@ public class TagStackClient implements ClientModInitializer {
             Registries.ITEM.forEach(item -> VANILLA_STACK_SIZES.put(item, item.getMaxCount()));
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(
-                TagStack.STACK_CHANGER_PACKET,
-                (client, handler, buf, responseSender) -> {
-                    int count = buf.readVarInt();
-                    Map<Identifier, Integer> stackSizes = new HashMap<>(count);
-                    for (int i = 0; i < count; i++) {
-                        stackSizes.put(buf.readIdentifier(), buf.readVarInt());
-                    }
-
-                    client.execute(() -> {
-                        for (Map.Entry<Item, Integer> e : VANILLA_STACK_SIZES.entrySet()) {
-                            ((ItemAccessor) e.getKey()).tagStack$setMaxCount(e.getValue());
-                        }
-
-                        for (Map.Entry<Identifier, Integer> entry : stackSizes.entrySet()) {
-                            Item item = Registries.ITEM.get(entry.getKey());
-                            if (item != null) {
-                                ((ItemAccessor) item).tagStack$setMaxCount(entry.getValue());
-                            }
-                        }
-                    });
-                }
-        );
+        ClientPlayNetworking.registerGlobalReceiver(ItemListPayload.ID, ((payload, context) -> {
+            context.client().execute(() -> {
+                payload.items().forEach(identifier -> {
+                    ITEM_LIST.add(Registries.ITEM.get(identifier));
+                    TagStack.LOGGER.info(String.format("added %s to the list", identifier));
+                });
+            });
+        }));
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            for (Map.Entry<Item, Integer> e : VANILLA_STACK_SIZES.entrySet()) {
-                ((ItemAccessor) e.getKey()).tagStack$setMaxCount(e.getValue());
-            }
+            ITEM_LIST.forEach(listItem -> {
+                DefaultItemComponentEvents.MODIFY.register(context -> {
+                    context.modify(
+                            item -> item.equals(listItem),
+                            (builder, item) -> {
+                                builder.add(DataComponentTypes.MAX_STACK_SIZE, VANILLA_STACK_SIZES.get(listItem));
+                                TagStack.LOGGER.info(String.format("set %s to %d stack size", item, VANILLA_STACK_SIZES.get(item)));
+                            });
+                });
+            });
+            ITEM_LIST.clear();
         });
+    }
+
+    public static Map<Item, Integer> getVanillaStackSizes() {
+        return VANILLA_STACK_SIZES;
     }
 }

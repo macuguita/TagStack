@@ -4,12 +4,10 @@
 	"compatibilityLevel": "JAVA_17",
 	"plugin": "com.macuguita.tagstack.TagStackMixinPlugin",
 	"mixins": [
-		"accessor.ItemAccessor",
 		"buckets.BucketItemMixin",
 		"buckets.DispenserBlockMixin",
 		"buckets.MilkBucketItemMixin",
 		"buckets.PowderSnowBucketItemMixin",
-		"buckets.compat.meadow.WoodenMilkBucketMixin",
 		"buckets.compat.supplementaries.LumiseneBucketItemMixin"
 	],
 	"injectors": {

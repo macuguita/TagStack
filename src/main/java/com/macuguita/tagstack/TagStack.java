@@ -22,25 +22,30 @@
 
 package com.macuguita.tagstack;
 
-import com.macuguita.tagstack.mixin.accessor.ItemAccessor;
+import com.macuguita.tagstack.client.TagStackClient;
+import com.macuguita.tagstack.client.payloads.ItemListPayload;
 import com.macuguita.tagstack.utils.TagStackTags;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.CommonLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("deprecation")
@@ -48,9 +53,9 @@ public class TagStack implements ModInitializer {
 
 	public static final String MOD_ID = "tag_stack";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	public static final Identifier STACK_CHANGER_PACKET = id("stack_changer_packet");
+	public static final Identifier ITEM_LIST_PAYLOAD_ID = id("item_list");
 
-	private static final Map<TagKey<Item>, Integer> STACK_SIZE_MAP = Map.of(
+	public static final Map<TagKey<Item>, Integer> STACK_SIZE_MAP = Map.of(
 			TagStackTags.STACKABLE_TO_1, 1,
 			TagStackTags.STACKABLE_TO_2, 2,
 			TagStackTags.STACKABLE_TO_4, 4,
@@ -60,45 +65,50 @@ public class TagStack implements ModInitializer {
 			TagStackTags.STACKABLE_TO_64, 64
 	);
 
+	private static final List<Identifier> MODIFIED_ITEMS = new ArrayList<>();
+
 	@Override
 	public void onInitialize() {
-		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-			for (Item item : Registries.ITEM) {
-				for (Map.Entry<TagKey<Item>, Integer> entry : STACK_SIZE_MAP.entrySet()) {
-					if (item.getRegistryEntry().isIn(entry.getKey())) {
-						((ItemAccessor) item).tagStack$setMaxCount(entry.getValue());
-						break;
-					}
+		PayloadTypeRegistry.playS2C().register(ItemListPayload.ID, ItemListPayload.CODEC);
+
+		DefaultItemComponentEvents.MODIFY.register(context -> {
+			CommonLifecycleEvents.TAGS_LOADED.register((registries, client) -> {
+				for (var entry : STACK_SIZE_MAP.entrySet()) {
+					TagKey<Item> tag = entry.getKey();
+					int newSize = entry.getValue();
+					context.modify(
+							item -> registries.get(RegistryKeys.ITEM).getEntry(item).isIn(tag),
+							(builder, item) -> {
+								builder.add(DataComponentTypes.MAX_STACK_SIZE, newSize);
+								MODIFIED_ITEMS.add(registries.get(RegistryKeys.ITEM).getId(item));
+							}
+					);
 				}
-			}
-		});
-
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			ServerPlayerEntity player = handler.getPlayer();
-			PacketByteBuf buf = PacketByteBufs.create();
-			Map<Identifier, Integer> stackSizes = new HashMap<>();
-
-			for (Item item : Registries.ITEM) {
-				for (Map.Entry<TagKey<Item>, Integer> entry : STACK_SIZE_MAP.entrySet()) {
-					if (item.getRegistryEntry().isIn(entry.getKey())) {
-						stackSizes.put(Registries.ITEM.getId(item), entry.getValue());
-						break;
+			});
+			if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+				ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+					for (Map.Entry<Item, Integer> entry : TagStackClient.getVanillaStackSizes().entrySet()) {
+						Item item = entry.getKey();
+						int originalSize = entry.getValue();
+						context.modify(
+								itemToModify -> itemToModify == item,
+								(builder, itemToModify) -> builder.add(DataComponentTypes.MAX_STACK_SIZE, originalSize)
+						);
 					}
-				}
+				});
 			}
-
-			buf.writeVarInt(stackSizes.size());
-			for (Map.Entry<Identifier, Integer> e : stackSizes.entrySet()) {
-				buf.writeIdentifier(e.getKey());
-				buf.writeVarInt(e.getValue());
+			if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+				ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+					ServerPlayNetworking.send(handler.getPlayer(), new ItemListPayload(MODIFIED_ITEMS));
+					LOGGER.info(String.format("sent packet to %s", handler.getPlayer()));
+				});
 			}
-
-			ServerPlayNetworking.send(player, STACK_CHANGER_PACKET, buf);
 		});
 	}
 
+
 	public static Identifier id(String name) {
-		return new Identifier(MOD_ID, name);
+		return Identifier.of(MOD_ID, name);
 	}
 
 	public static ItemStack handleStackableBucket(ItemStack stack, PlayerEntity player, ItemStack emptyContainer) {

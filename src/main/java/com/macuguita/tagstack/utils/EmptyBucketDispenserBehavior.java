@@ -41,19 +41,19 @@ public class EmptyBucketDispenserBehavior extends ItemDispenserBehavior {
 
     @Override
     public ItemStack dispenseSilently(BlockPointer pointer, ItemStack stack) {
-        World world = pointer.getWorld();
-        BlockPos targetPos = pointer.getPos().offset(pointer.getBlockState().get(DispenserBlock.FACING));
+        World world = pointer.world();
+        BlockPos targetPos = pointer.pos().offset(pointer.state().get(DispenserBlock.FACING));
         BlockState state = world.getBlockState(targetPos);
         Block block = state.getBlock();
         ItemStack filled = ItemStack.EMPTY;
 
         if (block instanceof FluidDrainable drainable) {
-            filled = drainable.tryDrainFluid(world, targetPos, state);
+            filled = drainable.tryDrainFluid(null, world, targetPos, state);
         } else if (state.isOf(Blocks.LAVA_CAULDRON)) {
             filled = new ItemStack(Items.LAVA_BUCKET);
             world.setBlockState(targetPos, Blocks.CAULDRON.getDefaultState());
             world.playSound(null, targetPos, SoundEvents.ITEM_BUCKET_FILL_LAVA, SoundCategory.BLOCKS, 1.0F, 1.0F);
-        } else if (state.isOf(Blocks.POWDER_SNOW_CAULDRON) && state.get(PowderSnowCauldronBlock.LEVEL) == 3) {
+        } else if (state.isOf(Blocks.POWDER_SNOW_CAULDRON) && state.get(LeveledCauldronBlock.LEVEL) == 3) {
             filled = new ItemStack(Items.POWDER_SNOW_BUCKET);
             world.setBlockState(targetPos, Blocks.CAULDRON.getDefaultState());
             world.playSound(null, targetPos, SoundEvents.ITEM_BUCKET_FILL_POWDER_SNOW, SoundCategory.BLOCKS, 1.0F, 1.0F);
@@ -78,10 +78,10 @@ public class EmptyBucketDispenserBehavior extends ItemDispenserBehavior {
     }
 
     private boolean insertIntoInventory(BlockPointer pointer, ItemStack stack) {
-        BlockEntity entity = pointer.getBlockEntity();
+        BlockEntity entity = pointer.blockEntity();
         if (entity instanceof Inventory inventory && addToFirstFreeSlot(inventory, stack) >= 0) return true;
 
-        entity = pointer.getWorld().getBlockEntity(pointer.getPos().down());
+        entity = pointer.world().getBlockEntity(pointer.pos().down());
         return entity instanceof Inventory inventory && addToFirstFreeSlot(inventory, stack) >= 0;
     }
 

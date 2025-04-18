@@ -44,7 +44,7 @@ public class LumiseneBucketItemMixin {
                     target = "Lnet/mehvahdjukaar/supplementaries/common/items/fabric/LumiseneBucketItem;getEmptiedStack(Lnet/minecraft/item/ItemStack;Lnet/minecraft/entity/player/PlayerEntity;)Lnet/minecraft/item/ItemStack;"
             )
     )
-    private ItemStack daisy$LumiseneBucketsWorksWithBigStackSize(ItemStack stack, PlayerEntity player, Operation<ItemStack> original) {
+    private ItemStack tagStack$LumiseneBucketsWorksWithBigStackSize(ItemStack stack, PlayerEntity player, Operation<ItemStack> original) {
         return TagStack.handleStackableBucket(stack, player, new ItemStack(Items.BUCKET));
     }
 }

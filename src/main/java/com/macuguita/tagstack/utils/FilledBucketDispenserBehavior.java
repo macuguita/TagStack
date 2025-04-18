@@ -22,7 +22,10 @@
 
 package com.macuguita.tagstack.utils;
 
-import net.minecraft.block.*;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.DispenserBlock;
+import net.minecraft.block.LeveledCauldronBlock;
 import net.minecraft.block.dispenser.ItemDispenserBehavior;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.inventory.Inventory;
@@ -45,8 +48,8 @@ public class FilledBucketDispenserBehavior extends ItemDispenserBehavior {
         Item item = stack.getItem();
 
         if (item instanceof FluidModificationItem fluidItem) {
-            BlockPos targetPos = pointer.getPos().offset(pointer.getBlockState().get(DispenserBlock.FACING));
-            World world = pointer.getWorld();
+            BlockPos targetPos = pointer.pos().offset(pointer.state().get(DispenserBlock.FACING));
+            World world = pointer.world();
 
             boolean pumped = false;
 
@@ -65,7 +68,7 @@ public class FilledBucketDispenserBehavior extends ItemDispenserBehavior {
                         world.playSound(null, targetPos, SoundEvents.ITEM_BUCKET_EMPTY_LAVA, SoundCategory.BLOCKS, 1.0F, 1.0F);
                         pumped = true;
                     } else if (item == Items.POWDER_SNOW_BUCKET) {
-                        world.setBlockState(targetPos, Blocks.POWDER_SNOW_CAULDRON.getDefaultState().with(PowderSnowCauldronBlock.LEVEL, 3));
+                        world.setBlockState(targetPos, Blocks.POWDER_SNOW_CAULDRON.getDefaultState().with(LeveledCauldronBlock.LEVEL, 3));
                         world.playSound(null, targetPos, SoundEvents.ITEM_BUCKET_EMPTY_POWDER_SNOW, SoundCategory.BLOCKS, 1.0F, 1.0F);
                         pumped = true;
                     }
@@ -89,10 +92,10 @@ public class FilledBucketDispenserBehavior extends ItemDispenserBehavior {
     }
 
     private boolean insertIntoInventory(BlockPointer pointer, ItemStack stack) {
-        BlockEntity entity = pointer.getBlockEntity();
+        BlockEntity entity = pointer.blockEntity();
         if (entity instanceof Inventory inventory && addToFirstFreeSlot(inventory, stack) >= 0) return true;
 
-        entity = pointer.getWorld().getBlockEntity(pointer.getPos().down());
+        entity = pointer.world().getBlockEntity(pointer.pos().down());
         return entity instanceof Inventory inventory && addToFirstFreeSlot(inventory, stack) >= 0;
     }
 
