@@ -21,6 +21,9 @@
 		"client": [
 			"com.macuguita.tagstack.client.TagStackClient"
 		],
+		"server": [
+			"com.macuguita.tagstack.TagStackServer"
+		],
 		"fabric-datagen": [
 			"com.macuguita.tagstack.datagen.TagStackDataGenerator"
 		]

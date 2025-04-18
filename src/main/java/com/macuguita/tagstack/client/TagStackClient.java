@@ -22,12 +22,20 @@
 
 package com.macuguita.tagstack.client;
 
+import com.macuguita.tagstack.TagStack;
+import com.macuguita.tagstack.client.payloads.IdentifierListPayload;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class TagStackClient implements ClientModInitializer {
@@ -38,6 +46,30 @@ public class TagStackClient implements ClientModInitializer {
     public void onInitializeClient() {
         ClientLifecycleEvents.CLIENT_STARTED.register((client) -> {
             Registries.ITEM.forEach(item -> VANILLA_STACK_SIZES.put(item, item.getMaxCount()));
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(IdentifierListPayload.ID, (payload, context) -> {
+            Object2IntOpenHashMap<Identifier> identifierIntegerMap = payload.identifierIntegerMap();
+            context.client().execute(() -> {
+                TagStack.LOGGER.info(String.format("Received packet containing: %s", identifierIntegerMap.toString()));
+                DefaultItemComponentEvents.MODIFY.register(modifyContext -> {
+                    modifyContext.modify(
+                            item -> item.getMaxCount() != VANILLA_STACK_SIZES.get(item),
+                            (builder, item) -> {
+                                builder.add(DataComponentTypes.MAX_STACK_SIZE, VANILLA_STACK_SIZES.get(item));
+                            });
+                    for (var entry: identifierIntegerMap.entrySet()) {
+                        Item modifiedItem = Registries.ITEM.get(entry.getKey());
+                        int newStackSize = entry.getValue();
+                        modifyContext.modify(
+                                item -> item.equals(modifiedItem) && item.getMaxCount() != newStackSize,
+                                (builder, item) -> {
+                                    builder.add(DataComponentTypes.MAX_STACK_SIZE, newStackSize);
+                                });
+                    }
+                });
+                identifierIntegerMap.clear();
+            });
         });
     }
 
