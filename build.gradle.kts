@@ -25,7 +25,7 @@ loom {
 	}
 }
 
-version = BuildConfig.modVersion + "+" + BuildConfig.minecraftVersion
+version = BuildConfig.modVersion + "+1.21"
 group = BuildConfig.mavenGroup
 
 base {
@@ -67,7 +67,8 @@ tasks.processResources {
 			"description" to BuildConfig.description,
 			"license" to BuildConfig.license,
 			"loaderVersion" to BuildConfig.loaderVersion,
-			"minecraftVersion" to BuildConfig.minecraftVersion
+			"minecraftVersion" to BuildConfig.minecraftVersion,
+			"minecraftVersionRange" to BuildConfig.minecraftVersionRange
 		)
 	}
 }

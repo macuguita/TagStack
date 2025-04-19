@@ -8,8 +8,8 @@
 		"macuguita"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://macuguita.com/",
+		"sources": "https://github.com/macuguita/TagStack"
 	},
 	"license": "${license}",
 	"icon": "assets/${modId}/icon.png",
@@ -30,7 +30,7 @@
 	],
 	"depends": {
 		"fabricloader": ">=${loaderVersion}",
-		"minecraft": "~${minecraftVersion}",
+		"minecraft": "${minecraftVersionRange}",
 		"java": ">=21",
 		"fabric-api": "*"
 	}
