@@ -1,6 +1,7 @@
 object BuildConfig {
     val minecraftVersion: String = "1.20.1"
-    val yarnMappings: String = "1.20.1+build.10"
+    val minecraftVersionRange: String = ">=1.20.1 <=1.20.4"
+    val yarnMappings: String = minecraftVersion + "+build.10"
     val loaderVersion: String = "0.16.13"
 
     val modVersion: String = "1.0.0"
@@ -10,7 +11,7 @@ object BuildConfig {
     val description: String = "Mod that allows you to change item stack sizes with tags"
     val license: String = "MIT"
 
-    val fabricVersion: String = "0.92.5+1.20.1"
+    val fabricVersion: String = "0.92.5+" + minecraftVersion
     val architecturyVersion: String = "9.2.14+fabric"
     val clothConfigVersion: String = "11.1.136+fabric"
     val meadowVersion: String = "Zg8XweNS" //1.3.24
